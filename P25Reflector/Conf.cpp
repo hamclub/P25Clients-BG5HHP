@@ -37,6 +37,7 @@ enum SECTION {
 CConf::CConf(const std::string& file) :
 m_file(file),
 m_daemon(false),
+m_blackList(),
 m_lookupName(),
 m_lookupTime(0U),
 m_logDisplayLevel(0U),
@@ -95,6 +96,14 @@ bool CConf::read()
 			  m_lookupName = value;
 		  else if (::strcmp(key, "Time") == 0)
 			  m_lookupTime = (unsigned int)::atoi(value);
+		  else if (::strcmp(key, "BlackList") == 0) {
+			char* p = ::strtok(value, ",\r\n");
+			while (p != NULL) {
+				if (::strlen(p) > 0)
+					m_blackList.push_back(p);
+				p = ::strtok(NULL, ",\r\n");
+			}
+		}
 	  } else if (section == SECTION_LOG) {
 		  if (::strcmp(key, "FilePath") == 0)
 			  m_logFilePath = value;
@@ -120,6 +129,11 @@ bool CConf::read()
 bool CConf::getDaemon() const
 {
 	return m_daemon;
+}
+
+std::vector<std::string> CConf::getBlackList() const
+{
+	return m_blackList;
 }
 
 std::string CConf::getLookupName() const

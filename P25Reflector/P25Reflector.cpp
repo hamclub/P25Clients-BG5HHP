@@ -52,6 +52,8 @@ const char* DEFAULT_INI_FILE = "/etc/P25Reflector.ini";
 #include <cstring>
 #include <algorithm>
 
+std::vector<std::string> CP25Reflector::m_blackList;
+
 int main(int argc, char** argv)
 {
 	const char* iniFile = DEFAULT_INI_FILE;
@@ -175,6 +177,7 @@ void CP25Reflector::run()
 	CDMRLookup* lookup = new CDMRLookup(m_conf.getLookupName(), m_conf.getLookupTime());
 	lookup->read();
 
+	m_blackList = m_conf.getBlackList();
 	CStopWatch stopWatch;
 	stopWatch.start();
 
@@ -205,11 +208,17 @@ void CP25Reflector::run()
 
 			if (buffer[0U] == 0xF0U) {
 				if (rpt == NULL) {
+					std::string callsign((char*)(buffer + 1U), 10U);
+					if (isBlackListed(callsign))
+					{
+						LogMessage("Rejected %s (%s:%u)", rpt->m_callsign.c_str(), ::inet_ntoa(address), port);
+						goto exit;
+					}
 					rpt = new CP25Repeater;
 					rpt->m_timer.start();
 					rpt->m_address  = address;
 					rpt->m_port     = port;
-					rpt->m_callsign = std::string((char*)(buffer + 1U), 10U);
+					rpt->m_callsign = callsign;
 					m_repeaters.push_back(rpt);
 
 					LogMessage("Adding %s (%s:%u)", rpt->m_callsign.c_str(), ::inet_ntoa(address), port);
@@ -262,6 +271,15 @@ void CP25Reflector::run()
 						displayed = true;
 
 						std::string callsign = lookup->find(srcId);
+						if (isBlackListed(callsign))
+						{
+							current->m_timer.stop();
+							current = NULL;
+							watchdogTimer.stop();
+							LogMessage("Rejected transmission from %s at %s to %s%u", callsign.c_str(), current->m_callsign.c_str(), lcf == 0x00U ? "TG " : "", dstId);
+							goto exit;
+						}
+
 						LogMessage("Transmission from %s at %s to %s%u", callsign.c_str(), current->m_callsign.c_str(), lcf == 0x00U ? "TG " : "", dstId);
 					}
 
@@ -283,6 +301,8 @@ void CP25Reflector::run()
 				CUtils::dump(2U, "Data", buffer, len);
 			}
 		}
+
+exit:
 
 		unsigned int ms = stopWatch.elapsed();
 		stopWatch.start();
@@ -355,4 +375,13 @@ void CP25Reflector::dumpRepeaters() const
 		unsigned int timeout = (*it)->m_timer.getTimeout();
 		LogMessage("    %s (%s:%u) %u/%u", callsign.c_str(), ::inet_ntoa(address), port, timer, timeout);
 	}
+}
+
+bool CP25Reflector::isBlackListed(const std::string &idOrCall){
+	for (std::vector<std::string>::iterator i = m_blackList.begin();i != m_blackList.end(); ++i) {
+		if (idOrCall.compare(*i) == 0) {
+			return true;
+		}
+	}
+	return false;
 }

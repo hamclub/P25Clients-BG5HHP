@@ -33,6 +33,8 @@ public:
   // The General section
   bool         getDaemon() const;
 
+  std::vector<std::string> getBlackList() const;
+
   // The Id Lookup section
   std::string  getLookupName() const;
   unsigned int getLookupTime() const;
@@ -50,6 +52,8 @@ public:
 private:
   std::string  m_file;
   bool         m_daemon;
+
+  std::vector<std::string> m_blackList;
 
   std::string  m_lookupName;
   unsigned int m_lookupTime;
