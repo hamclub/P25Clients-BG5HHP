@@ -273,9 +273,9 @@ void CP25Reflector::run()
 						std::string callsign = lookup->find(srcId);
 						if (isBlackListed(callsign))
 						{
+							LogMessage("Rejected transmission from %s at %s to %s%u", callsign.c_str(), current->m_callsign.c_str(), lcf == 0x00U ? "TG " : "", dstId);
 							watchdogTimer.stop();
 							current = NULL;
-							LogMessage("Rejected transmission from %s at %s to %s%u", callsign.c_str(), current->m_callsign.c_str(), lcf == 0x00U ? "TG " : "", dstId);
 							goto exit;
 						}
 
