@@ -37,6 +37,7 @@
 #include <signal.h>
 #include <fcntl.h>
 #include <pwd.h>
+#include <assert.h>
 #endif
 
 #if defined(_WIN32) || defined(_WIN64)
