@@ -272,22 +272,29 @@ void CP25Reflector::run()
 						seen65 = true;
 					}
 
-					if (buffer[0U] == 0x66U && seen64 && seen65 && !displayed) {
+					if (buffer[0U] == 0x66U && seen64 && seen65) {
 						srcId = (buffer[1U] << 16) & 0xFF0000U;
 						srcId |= (buffer[2U] << 8) & 0x00FF00U;
 						srcId |= (buffer[3U] << 0) & 0x0000FFU;
-						displayed = true;
 
 						std::string callsign = lookup->find(srcId);
 						if (isBlackListed(callsign))
 						{
-							LogMessage("Rejected transmission from %s at %s to %s%u", callsign.c_str(), current->m_callsign.c_str(), lcf == 0x00U ? "TG " : "", dstId);
+							if (!displayed)
+							{
+								displayed = true;
+								LogMessage("Rejected transmission from %s at %s to %s%u", callsign.c_str(), current->m_callsign.c_str(), lcf == 0x00U ? "TG " : "", dstId);
+							}
 							watchdogTimer.stop();
 							current = NULL;
 							goto exit;
 						}
 
-						LogMessage("Transmission from %s at %s to %s%u", callsign.c_str(), current->m_callsign.c_str(), lcf == 0x00U ? "TG " : "", dstId);
+						if (!displayed)
+						{
+							LogMessage("Transmission from %s at %s to %s%u", callsign.c_str(), current->m_callsign.c_str(), lcf == 0x00U ? "TG " : "", dstId);
+							displayed = true;
+						}
 					}
 
 					for (std::vector<CP25Repeater*>::const_iterator it = m_repeaters.begin(); it != m_repeaters.end(); ++it) {
