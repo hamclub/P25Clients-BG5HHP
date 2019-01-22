@@ -219,7 +219,7 @@ void CP25Reflector::run()
 					std::string callsign((char*)(buffer + 1U), 10U);
 					if (!str_is_callsign(callsign.c_str()) || isBlackListed(callsign))
 					{
-						LogMessage("Rejected %s (%s:%u)", rpt->m_callsign.c_str(), ::inet_ntoa(address), port);
+						LogMessage("Rejected %s (%s:%u)", callsign.c_str(), ::inet_ntoa(address), port);
 						goto exit;
 					}
 					rpt = new CP25Repeater;
