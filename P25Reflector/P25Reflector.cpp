@@ -59,6 +59,7 @@ static char* str_rtrim(char* str);
 static char* str_trim(char* str) {
 	return str_ltrim(str_rtrim(str));
 }
+static bool  str_is_callsign(const char* str);
 
 int main(int argc, char** argv)
 {
@@ -215,7 +216,7 @@ void CP25Reflector::run()
 			if (buffer[0U] == 0xF0U) {
 				if (rpt == NULL) {
 					std::string callsign((char*)(buffer + 1U), 10U);
-					if (isBlackListed(callsign))
+					if (!str_is_callsign(callsign.c_str()) || isBlackListed(callsign))
 					{
 						LogMessage("Rejected %s (%s:%u)", rpt->m_callsign.c_str(), ::inet_ntoa(address), port);
 						goto exit;
@@ -429,4 +430,26 @@ static char* str_rtrim(char* str) {
             break;
     }
     return str;
+}
+
+static bool str_is_callsign(const char* str) {
+	assert(str);
+	char buf[24];
+	snprintf(buf, sizeof(buf),"%s",str);
+	str_trim(buf);
+	int len = strlen(buf);
+	if (len > 8 || len < 3)
+		return false;
+	
+	if (isdigit(buf[0]) || isdigit(buf[len-1]))
+		return false;
+
+	// only 1 digit
+	int digits = 0;
+	for (int i = 1;i<len - 1;i++) {
+		if (isdigit(buf[i]))
+			digits++;
+	}
+
+	return digits == 1;
 }
