@@ -54,6 +54,12 @@ const char* DEFAULT_INI_FILE = "/etc/P25Reflector.ini";
 
 std::vector<std::string> CP25Reflector::m_blackList;
 
+static char* str_ltrim(char* str);
+static char* str_rtrim(char* str);
+static char* str_trim(char* str) {
+	return str_ltrim(str_rtrim(str));
+}
+
 int main(int argc, char** argv)
 {
 	const char* iniFile = DEFAULT_INI_FILE;
@@ -377,10 +383,50 @@ void CP25Reflector::dumpRepeaters() const
 }
 
 bool CP25Reflector::isBlackListed(const std::string &idOrCall){
+	char buf[64];
+	snprintf(buf, sizeof(buf),"%s",idOrCall.c_str());
+	str_trim(buf);
 	for (std::vector<std::string>::iterator i = m_blackList.begin();i != m_blackList.end(); ++i) {
-		if (idOrCall.compare(*i) == 0) {
+		if (::strcmp((*i).c_str(), buf) == 0) {
 			return true;
 		}
 	}
 	return false;
+}
+
+static char* str_ltrim(char* str) {
+    if (str == NULL)
+        return NULL;
+
+    int i = 0;
+    while((str[i] == ' ' || str[i] == '\t' || str[i] == '\r' || str[i] == '\n')) {
+        i++;
+    }
+
+    if (i > 0) {
+        size_t len = strlen(str);
+        if (i == len)
+            str[0] = 0;
+        else
+            memmove(str, str + i, len - i + 1);
+    }
+    //return str + i;
+    return str;
+}
+
+static char* str_rtrim(char* str) {
+    if (str == NULL)
+        return NULL;
+
+    int len = strlen(str);
+    int i;
+    for(i = len - 1; i>=0; i--){
+        if (str[i] == ' ' || str[i] == '\t' || str[i] == '\r' || str[i] == '\n'){
+            str[i] = 0;
+            continue;
+        }
+        if (str[i] != 0)
+            break;
+    }
+    return str;
 }
