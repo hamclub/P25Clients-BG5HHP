@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2015,2016,2017,2018 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2015-2019 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -30,6 +30,7 @@ enum SECTION {
   SECTION_NONE,
   SECTION_GENERAL,
   SECTION_ID_LOOKUP,
+  SECTION_VOICE,
   SECTION_LOG,
   SECTION_NETWORK
 };
@@ -40,10 +41,12 @@ m_callsign(),
 m_rptAddress(),
 m_rptPort(0U),
 m_myPort(0U),
-m_announcements(true),
 m_daemon(false),
 m_lookupName(),
 m_lookupTime(0U),
+m_voiceEnabled(true),
+m_voiceLanguage("en_GB"),
+m_voiceDirectory(),
 m_logFilePath(),
 m_logFileRoot(),
 m_networkPort(0U),
@@ -82,6 +85,8 @@ bool CConf::read()
 			  section = SECTION_GENERAL;
 		  else if (::strncmp(buffer, "[Id Lookup]", 11U) == 0)
 			  section = SECTION_ID_LOOKUP;
+		  else if (::strncmp(buffer, "[Voice]", 7U) == 0)
+			  section = SECTION_VOICE;
 		  else if (::strncmp(buffer, "[Log]", 5U) == 0)
 			  section = SECTION_LOG;
 		  else if (::strncmp(buffer, "[Network]", 9U) == 0)
@@ -109,8 +114,6 @@ bool CConf::read()
 			  m_rptPort = (unsigned int)::atoi(value);
 		  else if (::strcmp(key, "LocalPort") == 0)
 			  m_myPort = (unsigned int)::atoi(value);
-		  else if (::strcmp(key, "Announcements") == 0)
-			  m_announcements = ::atoi(value) == 1;
 		  else if (::strcmp(key, "Daemon") == 0)
 			  m_daemon = ::atoi(value) == 1;
 	  } else if (section == SECTION_ID_LOOKUP) {
@@ -118,6 +121,13 @@ bool CConf::read()
 			  m_lookupName = value;
 		  else if (::strcmp(key, "Time") == 0)
 			  m_lookupTime = (unsigned int)::atoi(value);
+	  } else if (section == SECTION_VOICE) {
+		  if (::strcmp(key, "Enabled") == 0)
+			  m_voiceEnabled = ::atoi(value) == 1;
+		  else if (::strcmp(key, "Language") == 0)
+			  m_voiceLanguage = value;
+		  else if (::strcmp(key, "Directory") == 0)
+			  m_voiceDirectory = value;
 	  } else if (section == SECTION_LOG) {
 		  if (::strcmp(key, "FilePath") == 0)
 			  m_logFilePath = value;
@@ -170,11 +180,6 @@ unsigned int CConf::getMyPort() const
 	return m_myPort;
 }
 
-bool CConf::getAnnouncements() const
-{
-	return m_announcements;
-}
-
 bool CConf::getDaemon() const
 {
 	return m_daemon;
@@ -188,6 +193,21 @@ std::string CConf::getLookupName() const
 unsigned int CConf::getLookupTime() const
 {
 	return m_lookupTime;
+}
+
+bool CConf::getVoiceEnabled() const
+{
+	return m_voiceEnabled;
+}
+
+std::string CConf::getVoiceLanguage() const
+{
+	return m_voiceLanguage;
+}
+
+std::string CConf::getVoiceDirectory() const
+{
+	return m_voiceDirectory;
 }
 
 std::string CConf::getLogFilePath() const
