@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2015-2019 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2015-2020 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -57,9 +57,15 @@ public:
   unsigned int getNetworkReloadTime() const;
   std::string  getNetworkParrotAddress() const;
   unsigned int getNetworkParrotPort() const;
+  std::string  getNetworkP252DMRAddress() const;
+  unsigned int getNetworkP252DMRPort() const;
   unsigned int getNetworkStartup() const;
   unsigned int getNetworkInactivityTimeout() const;
   bool         getNetworkDebug() const;
+
+  // The Remote Commands section
+  bool         getRemoteCommandsEnabled() const;
+  unsigned int getRemoteCommandsPort() const;
 
 private:
   std::string  m_file;
@@ -85,9 +91,14 @@ private:
   unsigned int m_networkReloadTime;
   std::string  m_networkParrotAddress;
   unsigned int m_networkParrotPort;
+  std::string  m_networkP252DMRAddress;
+  unsigned int m_networkP252DMRPort;
   unsigned int m_networkStartup;
   unsigned int m_networkInactivityTimeout;
   bool         m_networkDebug;
+
+  bool         m_remoteCommandsEnabled;
+  unsigned int m_remoteCommandsPort;
 };
 
 #endif

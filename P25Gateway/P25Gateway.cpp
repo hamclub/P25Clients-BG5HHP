@@ -1,5 +1,5 @@
 /*
-*   Copyright (C) 2016-2019 by Jonathan Naylor G4KLX
+*   Copyright (C) 2016-2020 by Jonathan Naylor G4KLX
 *
 *   This program is free software; you can redistribute it and/or modify
 *   it under the terms of the GNU General Public License as published by
@@ -25,6 +25,7 @@
 #include "Thread.h"
 #include "Voice.h"
 #include "Timer.h"
+#include "Utils.h"
 #include "Log.h"
 
 #if defined(_WIN32) || defined(_WIN64)
@@ -169,6 +170,16 @@ void CP25Gateway::run()
 	in_addr rptAddr = CUDPSocket::lookup(m_conf.getRptAddress());
 	unsigned int rptPort = m_conf.getRptPort();
 
+	CUDPSocket* remoteSocket = NULL;
+	if (m_conf.getRemoteCommandsEnabled()) {
+		remoteSocket = new CUDPSocket(m_conf.getRemoteCommandsPort());
+		ret = remoteSocket->open();
+		if (!ret) {
+			delete remoteSocket;
+			remoteSocket = NULL;
+		}
+	}
+
 	CNetwork localNetwork(m_conf.getMyPort(), m_conf.getCallsign(), false);
 	ret = localNetwork.open();
 	if (!ret) {
@@ -187,6 +198,8 @@ void CP25Gateway::run()
 	CReflectors reflectors(m_conf.getNetworkHosts1(), m_conf.getNetworkHosts2(), m_conf.getNetworkReloadTime());
 	if (m_conf.getNetworkParrotPort() > 0U)
 		reflectors.setParrot(m_conf.getNetworkParrotAddress(), m_conf.getNetworkParrotPort());
+	if (m_conf.getNetworkP252DMRPort() > 0U)
+		reflectors.setP252DMR(m_conf.getNetworkP252DMRAddress(), m_conf.getNetworkP252DMRPort());
 	reflectors.load();
 
 	CDMRLookup* lookup = new CDMRLookup(m_conf.getLookupName(), m_conf.getLookupTime());
@@ -219,6 +232,8 @@ void CP25Gateway::run()
 	unsigned int currentPort = 0U;
 
 	unsigned int startupId = m_conf.getNetworkStartup();
+	bool p252dmr_enabled = (startupId == 20) ? true : false;
+	
 	if (startupId != 9999U) {
 		CP25Reflector* reflector = reflectors.find(startupId);
 		if (reflector != NULL) {
@@ -278,8 +293,11 @@ void CP25Gateway::run()
 				srcId  = (buffer[1U] << 16) & 0xFF0000U;
 				srcId |= (buffer[2U] << 8)  & 0x00FF00U;
 				srcId |= (buffer[3U] << 0)  & 0x0000FFU;
-
-				if (dstId != currentId) {
+				
+				if(p252dmr_enabled){
+					currentId = dstId;
+				}
+				else if (dstId != currentId) {
 					CP25Reflector* reflector = NULL;
 					if (dstId != 9999U)
 						reflector = reflectors.find(dstId);
@@ -360,6 +378,79 @@ void CP25Gateway::run()
 
 		reflectors.clock(ms);
 
+		if (remoteSocket != NULL) {
+			int res = remoteSocket->read(buffer, 200U, address, port);
+			if (res > 0) {
+				buffer[res] = '\0';
+				if (::memcmp(buffer + 0U, "TalkGroup", 9U) == 0) {
+					unsigned int tg = (unsigned int)::atoi((char*)(buffer + 9U));
+
+					CP25Reflector* reflector = NULL;
+					if (tg != 9999U)
+						reflector = reflectors.find(tg);
+
+					if (reflector == NULL && currentId != 9999U) {
+						LogMessage("Unlinked from reflector %u by remote command", currentId);
+
+						if (voice != NULL)
+							voice->unlinked();
+
+						remoteNetwork.writeUnlink(currentAddr, currentPort);
+						remoteNetwork.writeUnlink(currentAddr, currentPort);
+						remoteNetwork.writeUnlink(currentAddr, currentPort);
+
+						inactivityTimer.stop();
+						pollTimer.stop();
+						lostTimer.stop();
+
+						currentId = 9999U;
+					} else if (reflector != NULL && currentId == 9999U) {
+						currentId = tg;
+						currentAddr = reflector->m_address;
+						currentPort = reflector->m_port;
+
+						LogMessage("Linked to reflector %u by remote command", currentId);
+
+						if (voice != NULL)
+							voice->linkedTo(currentId);
+
+						remoteNetwork.writePoll(currentAddr, currentPort);
+						remoteNetwork.writePoll(currentAddr, currentPort);
+						remoteNetwork.writePoll(currentAddr, currentPort);
+
+						inactivityTimer.start();
+						pollTimer.start();
+						lostTimer.start();
+					} else if (reflector != NULL && currentId != 9999U) {
+						LogMessage("Unlinked from reflector %u by remote command", currentId);
+
+						remoteNetwork.writeUnlink(currentAddr, currentPort);
+						remoteNetwork.writeUnlink(currentAddr, currentPort);
+						remoteNetwork.writeUnlink(currentAddr, currentPort);
+
+						currentId = tg;
+						currentAddr = reflector->m_address;
+						currentPort = reflector->m_port;
+
+						LogMessage("Linked to reflector %u by remote command", currentId);
+
+						if (voice != NULL)
+							voice->linkedTo(currentId);
+
+						remoteNetwork.writePoll(currentAddr, currentPort);
+						remoteNetwork.writePoll(currentAddr, currentPort);
+						remoteNetwork.writePoll(currentAddr, currentPort);
+
+						inactivityTimer.start();
+						pollTimer.start();
+						lostTimer.start();
+					}
+				} else {
+					CUtils::dump("Invalid remote command received", buffer, res);
+				}
+			}
+		}
+
 		if (voice != NULL)
 			voice->clock(ms);
 
@@ -436,6 +527,11 @@ void CP25Gateway::run()
 	}
 
 	delete voice;
+
+	if (remoteSocket != NULL) {
+		remoteSocket->close();
+		delete remoteSocket;
+	}
 
 	localNetwork.close();
 
