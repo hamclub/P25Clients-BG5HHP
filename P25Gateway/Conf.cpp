@@ -48,6 +48,8 @@ m_lookupTime(0U),
 m_voiceEnabled(true),
 m_voiceLanguage("en_GB"),
 m_voiceDirectory(),
+m_logDisplayLevel(0U),
+m_logFileLevel(0U),
 m_logFilePath(),
 m_logFileRoot(),
 m_networkAddress(),
@@ -140,6 +142,10 @@ bool CConf::read()
 			  m_logFilePath = value;
 		  else if (::strcmp(key, "FileRoot") == 0)
 			  m_logFileRoot = value;
+		  else if (::strcmp(key, "FileLevel") == 0)
+			  m_logFileLevel = (unsigned int)::atoi(value);
+		  else if (::strcmp(key, "DisplayLevel") == 0)
+			  m_logDisplayLevel = (unsigned int)::atoi(value);
 	  } else if (section == SECTION_NETWORK) {
 		  if (::strcmp(key, "Address") == 0)
 		      m_networkAddress = value;
@@ -230,14 +236,24 @@ std::string CConf::getVoiceDirectory() const
 	return m_voiceDirectory;
 }
 
+unsigned int CConf::getLogDisplayLevel() const
+{
+	return m_logDisplayLevel;
+}
+
+unsigned int CConf::getLogFileLevel() const
+{
+	return m_logFileLevel;
+}
+
 std::string CConf::getLogFilePath() const
 {
-  return m_logFilePath;
+	return m_logFilePath;
 }
 
 std::string CConf::getLogFileRoot() const
 {
-  return m_logFileRoot;
+	return m_logFileRoot;
 }
 
 std::string CConf::getNetworkAddress() const
