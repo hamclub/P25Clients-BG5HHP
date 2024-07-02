@@ -26,9 +26,13 @@
 #include <cstring>
 #include <cctype>
 
+unsigned int XLINK_REF_ID = 9U;
+
 CReflectors::CReflectors(const std::string& hostsFile1, const std::string& hostsFile2, unsigned int reloadTime) :
 m_hostsFile1(hostsFile1),
 m_hostsFile2(hostsFile2),
+m_xlinkAddress(),
+m_xlinkPort(0U),
 m_parrotAddress(),
 m_parrotPort(0U),
 m_reflectors(),
@@ -44,6 +48,11 @@ CReflectors::~CReflectors()
 		delete *it;
 
 	m_reflectors.clear();
+}
+
+void CReflectors::setXLinkServer(const std::string& address, unsigned int port) {
+	m_xlinkAddress = address;
+	m_xlinkPort = port;
 }
 
 void CReflectors::setParrot(const std::string& address, unsigned int port)
@@ -130,6 +139,16 @@ bool CReflectors::load()
 
 	size_t size = m_reflectors.size();
 	LogInfo("Loaded %u P25 reflectors", size);
+
+	// Add the xlink server entry
+	if (!m_xlinkAddress.empty()) {
+		CP25Reflector* refl = new CP25Reflector;
+		refl->m_id      = XLINK_REF_ID;
+		refl->m_address = CUDPSocket::lookup(m_xlinkAddress);
+		refl->m_port    = m_xlinkPort;
+		m_reflectors.push_back(refl);
+		LogInfo("Loaded XLink server (TG%u)", refl->m_id);
+	}
 
 	// Add the Parrot entry
 	if (m_parrotPort > 0U) {

@@ -187,7 +187,7 @@ void CP25Gateway::run()
 		return;
 	}
 
-	CNetwork remoteNetwork(m_conf.getNetworkPort(), m_conf.getCallsign(), m_conf.getNetworkDebug());
+	CNetwork remoteNetwork(m_conf.getNetworkLocalPort(), m_conf.getCallsign(), m_conf.getNetworkDebug());
 	ret = remoteNetwork.open();
 	if (!ret) {
 		localNetwork.close();
@@ -196,6 +196,13 @@ void CP25Gateway::run()
 	}
 
 	CReflectors reflectors(m_conf.getNetworkHosts1(), m_conf.getNetworkHosts2(), m_conf.getNetworkReloadTime());
+
+	std::string xlinkAddr  = m_conf.getNetworkAddress();
+	unsigned int xlinkPort = m_conf.getNetworkPort();
+	if (!xlinkAddr.empty()) {
+		reflectors.setXLinkServer(xlinkAddr, xlinkPort > 0 ? xlinkPort : 62033);
+	}
+
 	if (m_conf.getNetworkParrotPort() > 0U)
 		reflectors.setParrot(m_conf.getNetworkParrotAddress(), m_conf.getNetworkParrotPort());
 	if (m_conf.getNetworkP252DMRPort() > 0U)
@@ -222,7 +229,7 @@ void CP25Gateway::run()
 		}
 	}
 
-	LogMessage("Starting P25Gateway-%s", VERSION);
+	LogMessage("Starting P25Gateway-%s (XLink)", VERSION);
 
 	unsigned int srcId = 0U;
 	unsigned int dstId = 0U;
@@ -232,6 +239,11 @@ void CP25Gateway::run()
 	unsigned int currentPort = 0U;
 
 	unsigned int startupId = m_conf.getNetworkStartup();
+
+	// overwrite the startup id
+	if (!xlinkAddr.empty())
+		startupId = XLINK_REF_ID;
+
 	bool p252dmr_enabled = (startupId == 20) ? true : false;
 	
 	if (startupId != 9999U) {

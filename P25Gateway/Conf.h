@@ -51,7 +51,9 @@ public:
   std::string  getLogFileRoot() const;
 
   // The Network section
+  std::string  getNetworkAddress() const;
   unsigned int getNetworkPort() const;
+  unsigned int getNetworkLocalPort() const;
   std::string  getNetworkHosts1() const;
   std::string  getNetworkHosts2() const;
   unsigned int getNetworkReloadTime() const;
@@ -85,7 +87,9 @@ private:
   std::string  m_logFilePath;
   std::string  m_logFileRoot;
 
+  std::string  m_networkAddress;
   unsigned int m_networkPort;
+  unsigned int m_networkLocalPort;
   std::string  m_networkHosts1;
   std::string  m_networkHosts2;
   unsigned int m_networkReloadTime;

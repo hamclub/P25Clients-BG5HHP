@@ -25,6 +25,8 @@
 #include <vector>
 #include <string>
 
+extern unsigned int XLINK_REF_ID;
+
 class CP25Reflector {
 public:
 	CP25Reflector() :
@@ -44,6 +46,7 @@ public:
 	CReflectors(const std::string& hostsFile1, const std::string& hostsFile2, unsigned int reloadTime);
 	~CReflectors();
 
+	void setXLinkServer(const std::string& address, unsigned int port);
 	void setParrot(const std::string& address, unsigned int port);
 	void setP252DMR(const std::string& address, unsigned int port);
 
@@ -56,6 +59,8 @@ public:
 private:
 	std::string                 m_hostsFile1;
 	std::string                 m_hostsFile2;
+	std::string                 m_xlinkAddress;
+	unsigned int                m_xlinkPort;
 	std::string                 m_parrotAddress;
 	unsigned int                m_parrotPort;
 	std::string					m_p252dmrAddress;

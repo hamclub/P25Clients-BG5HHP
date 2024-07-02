@@ -50,7 +50,9 @@ m_voiceLanguage("en_GB"),
 m_voiceDirectory(),
 m_logFilePath(),
 m_logFileRoot(),
+m_networkAddress(),
 m_networkPort(0U),
+m_networkLocalPort(0U),
 m_networkHosts1(),
 m_networkHosts2(),
 m_networkReloadTime(0U),
@@ -139,8 +141,12 @@ bool CConf::read()
 		  else if (::strcmp(key, "FileRoot") == 0)
 			  m_logFileRoot = value;
 	  } else if (section == SECTION_NETWORK) {
-		  if (::strcmp(key, "Port") == 0)
+		  if (::strcmp(key, "Address") == 0)
+		      m_networkAddress = value;
+		  else if (::strcmp(key, "Port") == 0)
 			  m_networkPort = (unsigned int)::atoi(value);
+		  else if (::strcmp(key, "LocalPort") == 0)
+			m_networkLocalPort = (unsigned int)::atoi(value);
 		  else if (::strcmp(key, "HostsFile1") == 0)
 			  m_networkHosts1 = value;
 		  else if (::strcmp(key, "HostsFile2") == 0)
@@ -234,9 +240,19 @@ std::string CConf::getLogFileRoot() const
   return m_logFileRoot;
 }
 
+std::string CConf::getNetworkAddress() const
+{
+	return m_networkAddress;
+}
+
 unsigned int CConf::getNetworkPort() const
 {
 	return m_networkPort;
+}
+
+unsigned int CConf::getNetworkLocalPort() const
+{
+	return m_networkLocalPort;
 }
 
 std::string CConf::getNetworkHosts1() const
