@@ -150,7 +150,7 @@ void CP25Reflector::run()
 	}
 #endif
 
-	ret = ::LogInitialise(m_conf.getLogFilePath(), m_conf.getLogFileRoot(), m_conf.getLogFileLevel(), m_conf.getLogDisplayLevel());
+	ret = ::LogInitialise(m_daemon, m_conf.getLogFilePath(), m_conf.getLogFileRoot(), m_conf.getLogFileLevel(), m_conf.getLogDisplayLevel());
 	if (!ret) {
 		::fprintf(stderr, "P25Gateway: unable to open the log file\n");
 		return;
