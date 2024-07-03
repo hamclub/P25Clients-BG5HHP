@@ -229,7 +229,7 @@ void CP25Gateway::run()
 		}
 	}
 
-	LogMessage("Starting P25Gateway-%s (XLink)", VERSION);
+	LogMessage("Starting P25Gateway-%s (HHPLink)", VERSION);
 
 	unsigned int srcId = 0U;
 	unsigned int dstId = 0U;

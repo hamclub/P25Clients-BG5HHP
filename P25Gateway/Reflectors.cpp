@@ -147,7 +147,7 @@ bool CReflectors::load()
 		refl->m_address = CUDPSocket::lookup(m_xlinkAddress);
 		refl->m_port    = m_xlinkPort;
 		m_reflectors.push_back(refl);
-		LogInfo("Loaded XLink server (TG%u)", refl->m_id);
+		LogInfo("Loaded HHPLink server (TG%u)", refl->m_id);
 	}
 
 	// Add the Parrot entry
