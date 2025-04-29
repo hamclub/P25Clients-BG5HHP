@@ -217,7 +217,7 @@ void CP25Reflector::run()
 			if (buffer[0U] == 0xF0U) {
 				if (rpt == NULL) {
 					std::string callsign((char*)(buffer + 1U), 10U);
-					if (!str_is_callsign(callsign.c_str()) || isBlackListed(callsign))
+					if (!isWhiteListed(callsign) && (!str_is_callsign(callsign.c_str()) || isBlackListed(callsign)))
 					{
 						LogMessage("Rejected %s (%s:%u)", callsign.c_str(), ::inet_ntoa(address), port);
 						goto exit;
@@ -400,6 +400,13 @@ bool CP25Reflector::isBlackListed(const std::string &idOrCall){
 			return true;
 		}
 	}
+	return false;
+}
+
+bool CP25Reflector::isWhiteListed(const std::string &idOrCall){
+	if (::strncmp(idOrCall.c_str(), "DVREFCHK", 0) == 0)
+		return true;
+
 	return false;
 }
 

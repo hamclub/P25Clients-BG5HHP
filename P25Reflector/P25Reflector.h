@@ -70,6 +70,7 @@ private:
 	void dumpRepeaters() const;
 	static std::vector<std::string> m_blackList;
 	static bool isBlackListed(const std::string& idOrCall);
+	static bool isWhiteListed(const std::string& idOrCall);
 };
 
 #endif
