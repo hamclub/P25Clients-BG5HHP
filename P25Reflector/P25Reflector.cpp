@@ -406,6 +406,8 @@ bool CP25Reflector::isBlackListed(const std::string &idOrCall){
 bool CP25Reflector::isWhiteListed(const std::string &idOrCall){
 	if (::strncmp(idOrCall.c_str(), "DVREFCHK", 8) == 0)
 		return true;
+	else if (::strncmp(idOrCall.c_str(), "APX00", 5) == 0)
+		return true;
 
 	return false;
 }
