@@ -36,6 +36,8 @@ m_xlinkAddress(),
 m_xlinkPort(0U),
 m_parrotAddress(),
 m_parrotPort(0U),
+m_p252dmrAddress(),
+m_p252dmrPort(0U),
 m_reflectors(),
 m_timer(1000U, reloadTime * 60U)
 {
