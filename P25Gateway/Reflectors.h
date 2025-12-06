@@ -25,7 +25,8 @@
 #include <vector>
 #include <string>
 
-extern unsigned int XLINK_REF_ID;
+extern const unsigned int XLINK_REF_ID;
+extern const unsigned int P25DMR_SW_ID;
 
 class CP25Reflector {
 public:

@@ -197,16 +197,19 @@ void CP25Gateway::run()
 
 	CReflectors reflectors(m_conf.getNetworkHosts1(), m_conf.getNetworkHosts2(), m_conf.getNetworkReloadTime());
 
+	// P25toDMR will be disabled if HHPLink is used
 	std::string xlinkAddr  = m_conf.getNetworkAddress();
 	unsigned int xlinkPort = m_conf.getNetworkPort();
 	if (!xlinkAddr.empty()) {
 		reflectors.setXLinkServer(xlinkAddr, xlinkPort > 0 ? xlinkPort : 62033);
+	} else {
+		if (m_conf.getNetworkP252DMRPort() > 0U)
+			reflectors.setP252DMR(m_conf.getNetworkP252DMRAddress(), m_conf.getNetworkP252DMRPort());
 	}
 
 	if (m_conf.getNetworkParrotPort() > 0U)
 		reflectors.setParrot(m_conf.getNetworkParrotAddress(), m_conf.getNetworkParrotPort());
-	if (m_conf.getNetworkP252DMRPort() > 0U)
-		reflectors.setP252DMR(m_conf.getNetworkP252DMRAddress(), m_conf.getNetworkP252DMRPort());
+
 	reflectors.load();
 
 	CDMRLookup* lookup = new CDMRLookup(m_conf.getLookupName(), m_conf.getLookupTime());
@@ -244,7 +247,8 @@ void CP25Gateway::run()
 	if (!xlinkAddr.empty())
 		startupId = XLINK_REF_ID;
 
-	bool p252dmr_enabled = (startupId == 20) ? true : false;
+	// keep tgid when linked to XLink
+	bool keepDstId = (startupId == XLINK_REF_ID || startupId == P25DMR_SW_ID);
 	
 	if (startupId != 9999U) {
 		CP25Reflector* reflector = reflectors.find(startupId);
@@ -281,9 +285,12 @@ void CP25Gateway::run()
 					if (buffer[0U] == 0x64U) {
 						buffer[1U] = 0x00U;			// LCF is for TGs
 					} else if (buffer[0U] == 0x65U) {
-						buffer[1U] = (currentId >> 16) & 0xFFU;
-						buffer[2U] = (currentId >> 8) & 0xFFU;
-						buffer[3U] = (currentId >> 0) & 0xFFU;
+						// only rewrite tgid with link id on normal p25 reflectors
+						if (!keepDstId) {
+							buffer[1U] = (currentId >> 16) & 0xFFU;
+							buffer[2U] = (currentId >> 8) & 0xFFU;
+							buffer[3U] = (currentId >> 0) & 0xFFU;
+						}
 					}
 
 					localNetwork.writeData(buffer, len, rptAddr, rptPort);
@@ -306,9 +313,9 @@ void CP25Gateway::run()
 				srcId |= (buffer[2U] << 8)  & 0x00FF00U;
 				srcId |= (buffer[3U] << 0)  & 0x0000FFU;
 				
-				if(p252dmr_enabled){
+				if(keepDstId)
 					currentId = dstId;
-				}
+
 				else if (dstId != currentId) {
 					CP25Reflector* reflector = NULL;
 					if (dstId != 9999U)

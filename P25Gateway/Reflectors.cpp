@@ -26,7 +26,8 @@
 #include <cstring>
 #include <cctype>
 
-unsigned int XLINK_REF_ID = 9U;
+const unsigned int XLINK_REF_ID = 9U;
+const unsigned int P25DMR_SW_ID = 20U;
 
 CReflectors::CReflectors(const std::string& hostsFile1, const std::string& hostsFile2, unsigned int reloadTime) :
 m_hostsFile1(hostsFile1),
@@ -163,7 +164,7 @@ bool CReflectors::load()
 	// Add the P252DMR entry
 	if (m_p252dmrPort > 0U) {
 		CP25Reflector* refl = new CP25Reflector;
-		refl->m_id      = 20U;
+		refl->m_id      = P25DMR_SW_ID;
 		refl->m_address = CUDPSocket::lookup(m_p252dmrAddress);
 		refl->m_port    = m_p252dmrPort;
 		m_reflectors.push_back(refl);
