@@ -168,9 +168,9 @@ bool CConf::read()
 			  m_logDisplayLevel = (unsigned int)::atoi(value);
 	  } else if (section == SECTION_NETWORK) {
 		  if (::strcmp(key, "Address") == 0)
-		      m_networkAddress = value;
+		      m_networkAddress = value ? value : "";
 		  else if (::strcmp(key, "Port") == 0)
-			  m_networkPort = (unsigned int)::atoi(value);
+			  m_networkPort = value ? (unsigned int)::atoi(value) : 0;
 		  else if (::strcmp(key, "LocalPort") == 0)
 			m_networkLocalPort = (unsigned int)::atoi(value);
 		  else if (::strcmp(key, "HostsFile1") == 0)
@@ -188,7 +188,7 @@ bool CConf::read()
 		  else if (::strcmp(key, "P252DMRPort") == 0)
 			  m_networkP252DMRPort = (unsigned int)::atoi(value);
 		  else if (::strcmp(key, "Startup") == 0)
-			  m_networkStartup = (unsigned int)::atoi(value);
+			  m_networkStartup = value ? (unsigned int)::atoi(value) : 0;
 		  else if (::strcmp(key, "InactivityTimeout") == 0)
 			  m_networkInactivityTimeout = (unsigned int)::atoi(value);
 		  else if (::strcmp(key, "Debug") == 0)
